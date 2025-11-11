@@ -86,17 +86,24 @@ if __name__ == "__main__":
     # Right now this is how you set the models to convert,
     # in future (if I keep to maintain this project) it will be easier
     src_models = [
+        # MlModel(
+        #     "pix2text-mfd-1.5/pix2text-mfd-1.5.onnx",
+        #     "breezedeus",
+        #     "MIT",
+        #     "Mathematical Formula Detection (MFD) model from Pix2Text (P2T)",
+        #     "1.5",
+        #     "Input image (768x768 RGB), values normalized to [0, 1]",
+        #     "Detection output (1, 6, 12096) - bounding boxes and scores",
+        # ),
         MlModel(
-            "pix2text-mfd-1.5/pix2text-mfd-1.5.onnx",
-            "Pix2Text-MFD",
-            "Apache 2.0",
-            "Mathematical Formula Detection Model",
+            "pix2text-mfr-1.5/decoder_model.onnx",
+            "breezedeus",
+            "MIT",
+            "Mathematical Formula Recognition (MFR) model from Pix2Text (P2T)",
             "1.5",
             "Input image (768x768 RGB), values normalized to [0, 1]",
             "Detection output (1, 6, 12096) - bounding boxes and scores",
-        )
-        # ["", "", ""],
-        # ["", "", ""],
+        ),
     ]
     for model in src_models:
         model.convert()
