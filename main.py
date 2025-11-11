@@ -9,7 +9,15 @@ from onnxsim import simplify
 
 class MlModel(object):
     def __init__(
-        self, file, author, license, short_description, version, input_desc, output_desc
+        self,
+        file,
+        author,
+        license,
+        short_description,
+        version,
+        input_desc,
+        output_desc,
+        input_shapes=None,
     ) -> None:
         self.file = file
         self.author = author
@@ -18,6 +26,7 @@ class MlModel(object):
         self.version = version
         self.input_desc = input_desc
         self.output_desc = output_desc
+        self.input_shapes = input_shapes
         self.simp_file = file.replace(".onnx", "-simplified.onnx")
         self.coreml_file = self.simp_file.replace(".onnx", ".mlpackage")
         self.saved_model_dir = "saved_model"
@@ -28,7 +37,7 @@ class MlModel(object):
         model = onnx.load(self.file)
         model_simp, check = simplify(
             model,
-            overwrite_input_shapes={"images": [1, 3, 768, 768]},
+            overwrite_input_shapes=self.input_shapes,
             dynamic_input_shape=False,
             skip_fuse_bn=True,
             perform_optimization=True,
@@ -54,15 +63,6 @@ class MlModel(object):
         )
 
         spec = model.get_spec()
-        # print("\nInputs:")
-        # for input_desc in spec.description.input:
-        #     print(f"  Name: {input_desc.name}")
-        #     print(f"  Type: {input_desc.type}")
-
-        # print("\nOutputs:")
-        # for output_desc in spec.description.output:
-        #     print(f"  Name: {output_desc.name}")
-        #     print(f"  Type: {output_desc.type}")
 
         model.author = self.author
         model.license = self.license
@@ -86,23 +86,38 @@ if __name__ == "__main__":
     # Right now this is how you set the models to convert,
     # in future (if I keep to maintain this project) it will be easier
     src_models = [
-        # MlModel(
-        #     "pix2text-mfd-1.5/pix2text-mfd-1.5.onnx",
-        #     "breezedeus",
-        #     "MIT",
-        #     "Mathematical Formula Detection (MFD) model from Pix2Text (P2T)",
-        #     "1.5",
-        #     "Input image (768x768 RGB), values normalized to [0, 1]",
-        #     "Detection output (1, 6, 12096) - bounding boxes and scores",
-        # ),
+        MlModel(
+            "pix2text-mfd-1.5/pix2text-mfd-1.5.onnx",
+            "breezedeus",
+            "MIT",
+            "Mathematical Formula Detection (MFD) model from Pix2Text (P2T)",
+            "1.5",
+            "Input image (768x768 RGB), values normalized to [0, 1]",
+            "Detection output (1, 6, 12096) - bounding boxes and scores",
+            input_shapes={"images": [1, 3, 768, 768]},
+        ),
         MlModel(
             "pix2text-mfr-1.5/decoder_model.onnx",
             "breezedeus",
             "MIT",
-            "Mathematical Formula Recognition (MFR) model from Pix2Text (P2T)",
+            "Mathematical Formula Recognition (MFR) model from Pix2Text (P2T) - Decoder",
             "1.5",
-            "Input image (768x768 RGB), values normalized to [0, 1]",
-            "Detection output (1, 6, 12096) - bounding boxes and scores",
+            "Encoder hidden states and input_ids",
+            "Logits for next token",
+            input_shapes={
+                "input_ids": [1, 1],
+                "encoder_hidden_states": [1, 576, 384],
+            },
+        ),
+        MlModel(
+            "pix2text-mfr-1.5/encoder_model.onnx",
+            "breezedeus",
+            "MIT",
+            "Mathematical Formula Recognition (MFR) model from Pix2Text (P2T) - Encoder",
+            "1.5",
+            "Input image (384x384 RGB), values normalized",
+            "Encoder hidden states",
+            input_shapes={"pixel_values": [1, 3, 384, 384]},
         ),
     ]
     for model in src_models:
